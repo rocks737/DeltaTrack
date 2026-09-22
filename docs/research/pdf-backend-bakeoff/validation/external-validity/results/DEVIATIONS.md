@@ -1190,3 +1190,482 @@ detection breaking.
 **What A56 does not do.** It changes no gate, no authorization, no scientific value, and no
 research artifact. It does not integrate any branch, create an authorization, prepare a
 packet, adjudicate, score, or decide the architecture.
+
+## A57 — POST-BOUNDARY APPARATUS DEVIATION
+
+```json
+{
+ "id": "A57",
+ "kind": "DEVIATION",
+ "commits": [
+  "dcc2e990",
+  "49ed1f7d",
+  "7e87acd2",
+  "b263360f",
+  "fc8ce91f",
+  "8a3ad000",
+  "3321d5b6",
+  "fafa2b45",
+  "4b7b851e",
+  "05e772e2",
+  "a5fa991a",
+  "39359aae",
+  "17dfcd72",
+  "f0687016",
+  "0a5d9eb3",
+  "ce717732",
+  "ba7cae8d",
+  "38c0982e",
+  "a398eaa6",
+  "202b7ec9",
+  "57e73d72"
+ ],
+ "classification": "POST-BOUNDARY APPARATUS DEVIATION (AI ADJUDICATION ARM)",
+ "made_after_boundary": "de60dddf906bc4b01e5ffbe9af4d3e833a9a2be7 (continuation boundary)",
+ "results_already_visible": {
+  "members": 17,
+  "pages": 4190,
+  "d_frame_census": 13992,
+  "s1_documents_firing": "17/17",
+  "p_head_documents": 12,
+  "p_head_pages": 2864,
+  "cross_engine": "17/17 measured, n_qualified 0"
+ },
+ "affects_membership": false,
+ "affects_scoring_rule": false,
+ "affects_metric_values": false,
+ "affects_architecture_decision": false,
+ "affects_execution_authorization": true,
+ "affects_reproducibility_surface": true,
+ "narrowing": "A57 BUILDS THE AI ADJUDICATION ARM that PRE-REGISTRATION 5.5 specifies and no code implemented. It reads no holdout byte and changes no threshold, selection rule, metric definition, route derivation or architecture rule. It does not modify the population, the frames, the frozen key, the blind artifact, the images, the original execution marker or either existing authorization. affects_metric_values is FALSE: no metric definition moves, and the single change to a pre-existing surface file (score_metrics.write_metrics at 3321d5b6) only REFUSES -- it computes nothing new and alters no value that was computable before. affects_execution_authorization and affects_reproducibility_surface are TRUE by construction: three files join METHODOLOGY_SURFACE / RESULT_BEARING_DATA, taking the authorization manifest from 31 entries to 34, so sequence 2 correctly goes stale and cannot speak for files it has never seen. The scorer's frozen import allowlist is widened by one, `ai_finalize`, so that whether an oracle may be scored can depend on where it came from; x27's own control is what made that widening visible, and the rejected alternative (moving verify_provenance into build_oracle) is recorded at the allowlist. NAMING NOTE: commit messages under these shas refer to 'the A57, A58, A59 and A60 reviews'. Those were labels for four independent reviews, not register ids; this record is the first use of A57 as a deviation id and the reviews have no register entries. COMMIT COVERAGE EXTENDED AFTER THE SURFACE GREW. results/AI-ADJUDICATION-PROTOCOL.json was not result-bearing when it was written, so the six commits that touched it (4b7b851e, 05e772e2, 49ed1f7d, a5fa991a, 39359aae, 17dfcd72) named no surface path and needed no declaration. Adding it to RESULT_BEARING_DATA at fafa2b45 made its entire history result-bearing, and surface_provenance_errors correctly required every one of those commits to be declared and to name the path. They are declared here rather than exempted: a file whose history is unaccounted for is exactly the silent surface hole A50 exists to close. 17dfcd72 SIMPLIFIED the arm, removing the run ledger, commencement semantics, resume-only recovery, run states and the two-phase START marker -- roughly 1,500 lines defending a property no local mechanism can enforce, now attested instead. It also carries three repairs to the GATE itself: blob_sha treating a path absent at a commit as present, the A50 synthetic controls inheriting the real RESULT_BEARING_DATA, and the self-test's membership tamper not surviving a signal. f0687016 rebuilt ai_finalize against the bundle the simplified runner actually writes -- it had been left addressing the removed run-<id> layout, so it could not have run at all -- and made derivation REPLAY the runner's acceptance rules over raw stdout rather than read the `accepted` flag beside it. 0a5d9eb3 replaced score_metrics.write_metrics(payload, path) with score_canonical(), which loads the committed inputs, verifies the oracle's origin, scores and writes as ONE operation: the payload argument made 'verify this oracle, write a metric computed from that one' expressible, which the protocol's finalizer.scoring_gate forbids. ce717732 extended the replay to compare every field an attempt records about itself against its own raw stdout, not only `accepted`, because the transcript is what a reviewer reads and an unchecked summary field can misdescribe an attempt without moving an answer. ba7cae8d drove `materialize()`, the production entry, which was the one path in the arm with no control over it -- the same shape as the f0687016 defect, where a module was green over a layout nothing produced. It changes no result-bearing code: x34_ai_finalize.py is a control file, declared here because F9 protects every .py under the study directory, not because it is on the authorization surface. NO METRIC DEFINITION MOVES IN ANY OF THEM: score() is untouched, and affects_metric_values stays FALSE. The scorer's frozen import allowlist is widened by a further two, `execute_study` (the committed owner of which documents are in the study, so that canonical_inputs does not become a second authority for the population) and `hashlib` (the oracle digest that binds the bytes verified to the bytes scored); the rejected alternative for each is recorded at the allowlist, as the ai_finalize widening was. ANSWERED AN INDEPENDENT ADVERSARIAL REVIEW AT 38c0982e, which found seven real defects in the arm as it stood at sequence 3. Four were introduced this session. In order of consequence: a harness envelope decoding to anything but an object raised after the paid subprocess call and before the transcript write, destroying the evidence of an attempt already paid for (predates this session, and would also have broken derivation, which replays the same function over committed stdout); the canonical score read oracle_key.json, s1_control.json and cross_engine_control.json straight off disk, so an edited S1 or cross-engine row moved a reported result without touching the AI bundle; provenance named the run directory by absolute path, defeating the clean-checkout reproduction the protocol's evidence bundle requires; the runner that produced a bundle was never compared with the runner replaying its acceptance rules, so a rule change was silent because it need not change any answer; the digest binding verification to scoring was taken by re-opening the file after verification returned; materialize() inverted the protocol's attestation order and checked nothing, so the statement would be signed by someone who had already seen the result; and several provenance fields were written and never read, letting the record assert more than a green verifier established. NO METRIC DEFINITION MOVES IN ANY OF THEM EITHER: score() is still untouched and affects_metric_values stays FALSE. probes/execute_study.py joins files_touched because the committed-input check belongs with load_frames, which has asked the same question since A43; x27's own import-allowlist control is what established that, by refusing the first version that asked it inside the scorer. A SECOND ADVERSARIAL PASS OVER THOSE FIXES, answered at a398eaa6, found more -- and the worst of it in the RUN path rather than the analysis. A usage limit discarded attempts that had already been paid for and handed the item a fresh retry budget on resume, so a stimulus could receive more attempts than the protocol declares; transcript writes were not atomic, so an interruption could leave a file whose name said the item was finished and whose contents could not be parsed; the runner identity was hashed when RUN.json was written at the end rather than before the first paid call, so a runner edited mid-run would be recorded as the one that produced the bundle; the oracle was written WITHOUT build_oracle's assert_write_permitted, making it the one canonical artifact producible before a valid execution boundary; the attested bundle digest was not compared with the materialized one; and the committed-input check was check-then-read rather than one read compared against HEAD, which also left a tracked-symlink hole. Four controls were found to be false-green and were repaired so each kills the code it names. NO METRIC DEFINITION MOVES HERE EITHER: score() remains untouched and affects_metric_values stays FALSE. THE ONE FINDING NOT FIXED is recorded rather than smoothed away: committing results/AI-ADJUDICATION-ATTESTATION.md trips F9, which requires a declaration, which takes the standing authorization stale. That is the gate working as designed, and adding the attestation to F9_IGNORE would weaken a gate for the operator's convenience; the sequence belongs in the runbook instead. A THIRD REVIEW, RUN IN TWO HALVES, RETURNED NO-GO ON BOTH, answered at 202b7ec9. The most serious finding was that the oracle could be written with NONE of its preconditions: they lived in materialize(), while finalize() writes the canonical artifact by default, so calling the lower function with an injected runs_root and item list produced the study's oracle from an external uncommitted bundle -- and verification passed it, because it checked the item COUNT and never that the ids were the frozen AI-route population. Next worst was in the arm's own acceptance rule: a refusal the model expressed AS JSON beside an empty heading list was accepted as the substantive claim 'no heading is printed in this image', while the same refusal in prose was correctly refused -- a defect that converts a refusal into a metric denominator. The run loop lost paid attempts on interruption and granted a fresh retry budget, did not stop on a usage limit reported through the raw error channel, and re-read the prompt per item after checking it once. THE PROTOCOL IS AMENDED under this entry, with the operator's approval and BEFORE any stimulus was adjudicated: it now declares the three model-identity failure conditions the code enforced and the protocol omitted, the six isolation control labels a committed bundle is held to, and an atomicity claim corrected to what the code does. That amendment is legitimate exactly as the protocol's own amendment_note says -- the ai namespace is empty and no transcript exists, so the artifact still records what was fixed before anyone could see a result. NO METRIC DEFINITION MOVES: score() remains untouched and affects_metric_values stays FALSE. THE ARM WAS THEN EXECUTED, and 57e73d72 is the commit the note above anticipated: it carries the operator's signed attestation naming run id bf3e1346d963647071b996af73d94785e8727a97e05cbaf29a850f5ca13f75d7, it is a post-freeze .md under the study directory, and it is declared HERE rather than added to F9_IGNORE, with the authorization regenerated behind it. The run itself is committed at 0a6cdd02 as results data, which F9 does not protect and which therefore needs no declaration: 122/122 items answered, every one on its first attempt, no refusals, no usage-limit stop, all six declared isolation controls passing with their leaking arms, and model_usage naming only the declared confirmatory model and the declared auxiliary. NO METRIC DEFINITION MOVES HERE EITHER: score() remains untouched and affects_metric_values stays FALSE.",
+ "files_touched": [
+  "probes/ai_adjudicate.py",
+  "probes/ai_finalize.py",
+  "probes/execute_study.py",
+  "probes/score_metrics.py",
+  "probes/x04_freeze_check.py",
+  "probes/x27_score_metrics.py",
+  "probes/x33_ai_adjudicate.py",
+  "probes/x34_ai_finalize.py",
+  "probes/x35_mutation_harness.py",
+  "results/AI-ADJUDICATION-ATTESTATION.md",
+  "results/AI-ADJUDICATION-PROTOCOL.json"
+ ]
+}
+```
+
+**What was missing.** PRE-REGISTRATION 5.5 specifies the coverage-frame oracle as AI
+image-adjudication by a separate `claude -p` process with no repository context, its prompt
+and transcript committed. No code implemented it. The human route was adjudicated and
+committed at 0b493c9f; the AI route's 122 items had never been run, and
+`score_metrics.validate_inputs` refuses without them, so the study could not be scored.
+
+**Why it took four reviews.** Three independent code reviews each found the same property —
+that the first binding run cannot be re-rolled — unenforced in a different place: no driver at
+all, then a driver gating only the cheap setup phase, then a guard bypassable by deleting a
+directory, aborting mid-run, or running twice concurrently. Each time the author reported it
+implemented and verified beforehand. A fourth review of the APPROACH found the rule itself was
+wrong rather than merely unimplemented: "the first run that COMPLETES binds" permits watching
+transcripts land item by item and aborting once they look disagreeable. The rule now binds on
+first COMMENCEMENT with resume-only recovery.
+
+**What is claimed, and what is not.** The binding property is an ATTESTATION, not a repository
+proof. The operator controls the filesystem, the processes, the credential and git history, so
+no local mechanism can establish that a command was never run; local guards defend against
+ACCIDENT and the operator's signed attestation carries the rest. Assurance beyond that needs an
+executor the operator does not control, which is a study-design decision and not a coding one.
+The execution marker already makes the same admission in the same words.
+
+**Isolation is measured, not assumed,** and the finding was counter-intuitive: `--restricted`
+suppresses BOTH project-level and user-level memory, while `ANTHROPIC_CONFIG_DIR` alone does
+not — with it set and `--restricted` absent, a planted project `CLAUDE.md` was read back
+verbatim and a separate probe recovered the operator's name and role. Every isolation control
+has an arm that must leak, and each was proved to fire before its protected counterpart was
+trusted.
+
+**Verified.** x33 51/51, x34 24/24, x27 195/195, x35 23/23. x35 is a mutation harness: it
+breaks the apparatus on purpose, 23 defects one at a time, and requires the verifier to notice.
+Its first run caught 10 of 22 — the number that justified the exercise, since x33 had until
+then reported 26/26 while staying green under a deleted binding guard. It is a corpus, not a
+proof: it establishes that these specific defects cannot pass unnoticed.
+
+## A61 — POST-BOUNDARY APPARATUS DEVIATION
+
+```json
+{
+ "id": "A61",
+ "kind": "DEVIATION",
+ "commits": [
+  "f865dfb4"
+ ],
+ "classification": "POST-BOUNDARY APPARATUS DEVIATION (AUTHORIZATION GENERATOR REPAIR)",
+ "made_after_boundary": "de60dddf906bc4b01e5ffbe9af4d3e833a9a2be7 (continuation boundary)",
+ "results_already_visible": {
+  "members": 17,
+  "pages": 4190,
+  "d_frame_census": 13992,
+  "s1_documents_firing": "17/17",
+  "p_head_documents": 12,
+  "p_head_pages": 2864,
+  "cross_engine": "17/17 measured, n_qualified 0",
+  "ai_route": "122/122 adjudicated, committed at 0a6cdd02"
+ },
+ "affects_membership": false,
+ "affects_scoring_rule": false,
+ "affects_metric_values": false,
+ "affects_architecture_decision": false,
+ "affects_execution_authorization": true,
+ "affects_reproducibility_surface": false,
+ "narrowing": "A61 REPAIRS THE GENERATOR THAT MINTS A CONTINUATION AUTHORIZATION, and changes no threshold, selection rule, metric definition, route derivation or architecture rule. score() is untouched and affects_metric_values is FALSE. No file joins or leaves METHODOLOGY_SURFACE, RESULT_BEARING_DATA or AUTHORIZATION_EXTRAS, so the authorization manifest is the same 34 entries before and after and affects_reproducibility_surface is FALSE; probes/x04_freeze_check.py is declared here because F9 protects every .py under the study directory, not because it is on that surface. THE DEADLOCK: the gate retires an authorization whose pinned DEVIATIONS.md blob has moved, while the generator tested only manifest_divergence over the methodology surface, which does not include the register. Declaring the operator's attestation in A57 moved the register without touching any surface file, so the gate read EXECUTION FORBIDDEN and the generator read 'nothing has changed'. The apparatus could not be advanced by any supported command. The generator now delegates that verdict to continuation_auth_errors, the gate's own validator, because two implementations of 'is this authorization still in force' is the defect and the missing register check was only where it surfaced. ONE SNAPSHOT PER RECORD: both artifact producers pinned blobs read from the working tree into records naming a HEAD commit, and nothing reconciled the two. The register reached neither check that would -- F9 exempts it by F9_IGNORE and F10 does not carry it -- so an uncommitted declaration could be pinned into a record claiming a head at which those bytes never existed, refused by historical validation only after the entry was already in an append-only chain. Every pin now resolves at the commit the record names, in the continuation producer AND in the execution marker, which carried the identical defect. build_execution_marker was extracted because its payload was built inline in main, where no control could reach it. ALSO: publication is now atomic and no-clobber via os.link, because a temp-and-rename overwrites and an exclusive create can strand a truncated record; the freeze and readiness gates are revalidated immediately before publication rather than only at entry; and the PERMITTED AS CONTINUATION line now names the chain entry actually in force, having read sequence 1 unconditionally. WHAT IS NOT CLOSED: there is no single atomic check before publication. Each read opens its own window and the last closes only at the link. A change that PERSISTS is retired by the gate on its next run; a TRANSIENT one, reverted before anything looks again, is not. This is a single-operator local repository, which is why that exposure is tolerable rather than answered. VERIFIED: the gate's own self-test at 270/270, and forty-five mutations each required to kill the control written for it. Several controls were found vacuous first and repaired -- a truthiness check under a comment claiming exactness, a substring match where 8 matched 18, an assertion comparing HEAD against HEAD, a refusal branch the fixture could never enter, and an ordering fix whose own undoing nothing detected. NOT ADDRESSED and tracked separately: G2's baseline fixture is already invalid, so several G2 controls pass for reasons unrelated to their labels. That predates this work and reworking those fixtures is its own change with its own review.",
+ "files_touched": [
+  "probes/x04_freeze_check.py"
+ ]
+}
+```
+
+## A62 — POST-BOUNDARY APPARATUS DEVIATION
+
+```json
+{
+ "id": "A62",
+ "kind": "DEVIATION",
+ "commits": [
+  "4599505d"
+ ],
+ "classification": "POST-BOUNDARY APPARATUS DEVIATION (R1 ROUTE COMPARISON)",
+ "made_after_boundary": "de60dddf906bc4b01e5ffbe9af4d3e833a9a2be7 (continuation boundary)",
+ "results_already_visible": {
+  "members": 17,
+  "pages": 4190,
+  "d_frame_census": 13992,
+  "s1_documents_firing": "17/17",
+  "p_head_documents": 12,
+  "p_head_pages": 2864,
+  "cross_engine": "17/17 measured, n_qualified 0",
+  "ai_route": "122/122 adjudicated, committed at 0a6cdd02",
+  "oracle": "materialized at 8f9831a8"
+ },
+ "affects_membership": false,
+ "affects_scoring_rule": false,
+ "affects_metric_values": true,
+ "affects_architecture_decision": true,
+ "affects_execution_authorization": false,
+ "affects_reproducibility_surface": true,
+ "narrowing": "A62 MAKES THE R1 ROUTE COMPARISON ASK THE A54 OWNER, and changes no threshold, selection rule, metric definition, frame derivation or architecture rule. A48 conditioned the frame-derived REQUIREMENT on the A27.3 budget but left `_required_r1_routes` reading the repeat's stored `adjudication_routes` raw, so the two sides of that comparison were derived under different rules. On the frozen pre-A48 key, whose routes came from RAW D membership, they can never agree: 1399 of 1401 R1 repeats mismatch, 1395 D-only declaring ['human'] against a required (), and 4 C+D declaring ['ai','human'] against ('ai',). `score_canonical()` refused outright. `score_metrics` was the ONLY route-requirement consumer outside `effective_record_routes`; `build_oracle.validate_adjudicated` and `ai_adjudicate.ai_route_items` already ask it. THIS IS THE THIRD LAYER OF ONE DEFECT: the first A48 pass conditioned route derivation, A48.7 found `heading_metrics` still walking (D_FRAME, PURPOSE_D_DECISION), and this is the declared-side comparison. Each was latent until the layer above it was unblocked, because scoring could never run end to end on the real key: `validate_inputs` refused without the AI route, which exists only as of the confirmatory adjudication at 0a6cdd02. affects_scoring_rule is FALSE: A62 implements the already-frozen A27.3 rule as A48 and A54 installed it and introduces no rule of its own. affects_metric_values is TRUE on the same reading A54 recorded: the R1 path moves from REFUSAL to the effective population, so the metric block produced is not the one the pre-A62 apparatus would have produced. affects_architecture_decision is TRUE at one remove: the repair makes the decision artifact REACHABLE, and the R1 verdict it yields sets A48-dependent `decided_by` attribution, though the outcome enum at a census above the budget remains constrained to INSUFFICIENT_COMPARATIVE_EVIDENCE and Rule 1 still cannot select corrected extended glyph. affects_reproducibility_surface is TRUE: `probes/score_metrics.py` is a member of the authorization manifest, so the continuation authorization at sequence 7 no longer speaks for the current apparatus. `probes/x27_score_metrics.py` is declared here because F9 protects every .py under the study directory, not because it is on that surface. THE REFUSAL IS UNWEAKENED: `reinterpret` is False for every key but the one pinned by a SHA-256 over its complete canonical content, and with it False `effective_record_routes` returns the stored routes unchanged, so a shortened repeat still mismatches its frame requirement and still refuses; the digest covers `adjudication_routes` and `human_answer_purposes` alike, so shortening the pinned key to earn the reinterpretation denies recognition instead. VERIFIED: x27 at 199/199, the gate's own self-test at 270/270, ruff clean. Every pre-existing R1 fixture is a post-A48 key for which reinterpretation never engages, so all 23 of them passed against an implementation that never enabled it at all; four checks now pin it in both directions and were shown RED before green. NOT ADDRESSED and tracked separately as issue 726: the scorer emits NOT_EVALUABLE_NO_R1_PAIRS for a zero-evidence R1 while `rule3_gates` accepts only NOT_EVALUABLE, so that verdict falls through to PASS. Not exercised by this run, since R1 text is FAIL on a non-empty denominator, and unrelated to route reinterpretation. ALSO NOT ADDRESSED, predating this work: G2's baseline fixture is already invalid, so several G2 controls pass for reasons unrelated to their labels.",
+ "files_touched": [
+  "probes/score_metrics.py",
+  "probes/x27_score_metrics.py"
+ ]
+}
+```
+
+### A62.1 — the R1 population collapse, and why no evidence floor was added
+
+**This is a finding about the study design under A27.3, not a defect and not a repair.**
+It is recorded because the number it produces decides a Rule 3 gate.
+
+With the comparison fixed, R1 resolves to **6 pairs, all on the AI route, with a summed
+heading-occurrence denominator of 5**:
+
+| dimension | observed | threshold | verdict |
+|---|---|---|---|
+| text | 4/5 = 0.80 | >= 0.90 | **FAIL** |
+| role | 4/5 = 0.80 | >= 0.80 | **PASS**, by exact equality |
+
+Four pairs are one-vs-one matched and agree on both dimensions. One pair is one-sided: the
+adjudicator enumerated no heading on the primary presentation and one on the repeat. Under
+R6.1 that occurrence stays in the denominator and earns no numerator, so **that single item
+alone produces both 4/5 figures**. The sixth pair is zero-vs-zero and contributes nothing,
+which is why `n_pairs` reads 6 while the denominator is 5; the pair count overstates the
+evidence and should not be read as the evidence base.
+
+**The AI arm was never a designed sample.** `plan_r1_repeats` draws an unstratified 10 % of
+all eligible primaries, `floor(14016 * 0.10) = 1401`, with no frame or stratum quota. The D
+frame outnumbers C by about 146:1, so a draw of 1395 D-only, 4 C+D and 2 C-only repeats is
+an arithmetic consequence of the population shape rather than an allocation. R1's designed
+power lived entirely in the human arm, and A27.3 as implemented by A48 removed that arm.
+What remains is the residue of an unstratified draw, now carrying the whole gate.
+
+**What the five occurrences are.** Four carry the fine section 5.3 role `other` and are bill
+designators (`†HR 6157 EAS`, `•S 1609 PCS`, `•HR 6147 RH`); one is `section` (`SEC. 504.`).
+`other` belongs in R1: section 5.3's codebook includes it, section 5.6 restricts no role set,
+and R6.3 records that M5 alone coarsens. Excluding designators would itself be post-hoc, and
+the role is not causal in any case, since any one-sided occurrence fails both dimensions
+identically.
+
+**No evidence floor was added, deliberately.** Section 5.6 freezes the 10 % repeat fraction
+and the two thresholds and nothing else: no minimum pair count, no minimum denominator, no
+stratification. A floor introduced now would take its value from having seen that a
+denominator of 5 produces a FAIL, which is the substitution the pre-registration exists to
+prevent. `_r1_status` therefore continues to treat every positive denominator as evaluable,
+exactly as frozen.
+
+**The consequence is applied, not softened.** Section 5.6's R1 row reads "below -> text
+metrics void / role metric void". The scorer reports that at `metrics.r1_text_gate`, which
+names M2 and M3 as voided when the text dimension is FAIL; `decide_architecture` does not
+read it, because Rule 3 (A27.6) owns the decision consequence and a failing Rule 3 blocker
+already forecloses a comparative result. **So the artifact carries M2 and M3 flagged void on
+the strength of five heading occurrences.** That is the conservative direction and it is what
+section 5.6 froze: declining to apply it after seeing the number would be the softening the
+register exists to refuse.
+
+**The contrary reading is recorded rather than dismissed.** A36.6's "C only -> AI, D only ->
+human" and section 5.6's "10 % of regions presented twice" read literally keep the 1395
+D-only repeats as human-route items, in which case their absent answers would REFUSE rather
+than resolve to no required route. A48 chose the other interpretation, that a
+non-result-bearing route is absent and is not scored. That choice is what makes any metric
+producible at all, and it is why every figure above is labelled NON-CONFIRMATORY under
+section 4.7.
+
+**An auditability gap, reported because it is not closed.** `_r1_pair_facts` emits aggregate
+counts per pair and not the occurrence keys or heading texts, so the scored artifact alone
+cannot show WHICH item drove the FAIL or confirm that the four matched occurrences bind the
+intended printed starts. Both were established out of band against the committed
+adjudications for this entry and are not reconstructible from `metrics.json`.
+
+### A62.2 — the heading population is unsettled for running page furniture, and R1's verdict turns on it
+
+**This qualifies A62.1 and partly corrects it.** A62.1 recorded that four of R1's five
+denominator-bearing occurrences are bill designators carrying the fine role `other`, and argued
+the role was not causal because any one-sided occurrence fails both dimensions identically. That
+is true of the role LABEL and beside the point about the POPULATION. Recomputed over the same
+committed answers, with running page designators removed from both sides of every pair:
+
+| R1 text, AI route | numerator / denominator | ratio | verdict |
+|---|---|---|---|
+| as scored | 4 / 5 | 0.80 | **FAIL** |
+| excluding running designators | 1 / 1 | 1.00 | **PASS** |
+
+The single occurrence that earns no numerator is `•S 1609 PCS`, reported on the repeat
+presentation and not on the primary. It is a running page designator. Removing designators leaves
+one occurrence, `SEC. 504.`, matched and agreeing on both text and role. **So the R1 text FAIL,
+and with it section 5.6's void of M2 and M3, rests entirely on whether a running page designator
+is a heading.**
+
+**The two routes answer that question differently, and the frozen prompt does not settle it.**
+
+| | headings reported | running page designators | roles |
+|---|---|---|---|
+| AI, 122 answers | 95 | **23** | section 32, account 23, other 35, agency 4, grouping 1 |
+| human, 45 answers | 33 | **0** | section 9, UNREADABLE 23, agency 1 |
+
+Twenty-one designators carry a leading dagger or bullet (`†HR 6157 EAS`, `•S 1609 PCS`,
+`•HR 6147 RH`, `•HR 7611 RH`, `•S 2976 PCS`, `•S 4663 IS`, `•HR 5961 RH`); two more are the same
+running designator without the mark (`HR 7617 RFS`, `HR 8469 PCS`). The human reported none of
+them across any answer.
+
+`adjudicator_prompt.md` defines a heading by printed composition alone: "centered, or set in
+capitals, or set in italic, or set in a distinctly larger or heavier face, or otherwise
+typographically separated from the paragraphs around it." Its exclusion list is "running body
+text, ordinary paragraphs, tables of figures, dollar amounts, and the small numbers printed in
+the left margin." A page-foot bill designator is set in bold capitals and is typographically
+separated, and running page furniture is not excluded. **On a literal reading of the frozen
+prompt the AI route is correct and the human route is applying an unstated exclusion.** Neither
+is transcribing wrongly; the instrument does not say which is intended.
+
+This is a definitional gap in a frozen document, so it is recorded, not repaired. Deciding it now,
+having seen that one answer yields R1 PASS and the other R1 FAIL, is the substitution
+PRE-REGISTRATION 4.7 exists to prevent. What the run establishes is that the gap exists and that
+it is load-bearing.
+
+**Reach beyond R1, stated as exposure rather than as a correction.** 23 of the 95 AI-route
+headings are running designators, so they also sit in the M1 recall denominator and the M2/M3
+populations for the C estimand. No recomputation of those is offered here: doing so would be a
+second post-hoc definition applied to a result already in hand.
+
+### A62.3 — the two adjudication routes fail differently, and both failures are systematic
+
+The N-A and N-B control failures recorded in the scoring commit are not scattered unreliability.
+Both routes were examined against the rendered images they were shown.
+
+**The human route silently repairs spacing defects.** N-A outcomes by mutation variant:
+
+| variant | AI | human |
+|---|---|---|
+| DELETE_ONE_WORD | 3/3 | 3/3 |
+| WELD_TWO_WORDS | 3/3 | **0/3** |
+| SPLIT_ONE_WORD | 1/2 | **0/2** |
+
+Every deleted word is caught; every spacing mutation is normalised away. Three of the five
+spacing fixtures carry no strike-through and render cleanly at 300 DPI in a serif face:
+`OPERATIONSAND SUPPORT` is plainly legible and was transcribed `OPERATIONS AND SUPPORT`. This is
+the failure class N-A exists to detect, and it is also the defect class the STUDY exists to
+measure, so it bears directly on the human route's fitness as ground truth for weld and split
+errors.
+
+**The human route substitutes a familiar spelling.** `RESCISSION` appears as `RECISSION` in 3 of
+4 human headings and twice more in human free-text notes; the AI route has 4 of 4 correct and no
+substitutions. Both N-B failures are this substitution. The images unambiguously print
+`RESCISSION`. Both behaviours are reading-for-meaning: normalise the spacing, correct the word.
+
+**One N-A fixture is confounded and is the AI route's only N-A failure.** A SPLIT was applied to a
+heading already carrying strike-through markup, and the strike line bridges the inserted gap. Both
+routes read one word, and the AI's committed note reasons explicitly that the gap is a strike
+artifact. The fixture's `mutation_evidence` validates the text layer only and asserts nothing
+about legibility in the render. Tracked as issue 727 and NOT repaired here: `control_fixtures.json`
+is on the result-bearing manifest, so editing it would retire the standing authorization and
+invalidate the scored metrics, and rebuilding an instrument after seeing which result it produced
+is the same post-hoc substitution refused above. Setting that fixture aside, the AI route is 8/8
+on N-A and 8/8 on N-B.
+
+**What the C-audit does and does not corroborate.** The 25 C-audit stimuli carry both routes'
+answers; 16 of 25 agree exactly on text and role. Neither control behaviour recurs there, and that
+is expected rather than reassuring: the C-audit contains no injected spacing defects to normalise
+and few instances of the substituted word, so it cannot detect either. Of the 9 differences, 4 are
+the designator disagreement of A62.2, 2 are role-only (the human marking `UNREADABLE` on text both
+routes transcribed identically), and 3 are human transcription or segmentation errors confirmed
+against the images: `SEC. 214.` read as `SEC. 215.` and merged with the following heading, an
+omitted `SEC. 722.`, and a stray quotation mark with trailing space. On every one of the three the
+AI route matches the image.
+
+**Direction, not rate.** One human across 8 N-A fixtures, 8 N-B fixtures and 25 C-audit stimuli.
+The mechanisms are established; the frequencies are not.
+
+### A62.4 — the running-designator question cannot be settled on the frozen text, and R1's failure is re-attributed
+
+**This resolves the question A62.2 left open by establishing that it is not resolvable on the
+instrument, and it corrects A62.2's account of what the R1 failure is evidence of.** Nothing here
+changes a threshold, a metric definition, a selection rule or any committed value, and nothing is
+recomputed.
+
+**A62.2's conclusion is confirmed, on evidence A62.2 did not have. The frozen prompt does not
+settle it.**
+
+The reason is not that the definition is vague. It is that **the compositional test over-generates,
+and every reader silently reads it down.** The first property in the definition's list is
+"centered". A centered page folio is centered, is typographically separated from the text block,
+and is not one of "the small numbers printed in the left margin", which are the marginal line
+numbers. On a strict compositional reading a page number is therefore a heading.
+
+**No one read it that way.** The AI route's notes discuss a page folio in **25** answers and report
+one as a heading in **none**. Across both routes, over all 167 committed answers, a bare-number
+heading is reported **zero** times. Two of those folio exclusions sit in the R1 pair that agrees:
+`9bf5371acb85cb21` and `5b3e82d843a78143` each report `SEC. 504.` and each explicitly set aside a
+centered folio, one of them the numeral `504` itself.
+
+So the compositional test is universally applied subject to an unstated page-furniture carve-out.
+**The frozen text nowhere says where that carve-out's boundary runs, and that boundary is exactly
+the question.** It excludes folios on everyone's reading. Whether it also excludes a page-foot bill
+designator is what the instrument does not say.
+
+This also disposes of the strongest argument for the literal reading, which is worth recording
+because it is the one a reader reaches for first: that the exclusion list names left-margin numbers
+and so shows the drafter had page furniture in view and enumerated it deliberately. The list
+demonstrably fails to cover furniture that every reader excluded regardless. It is an incomplete
+enumeration, not a considered one, and it cannot bear the weight of an expressio unius inference.
+
+**Two further readings were tested and neither settles it.** "Judge this visually, from composition
+alone" is the prompt's own instruction to prefer composition over function, and it is the best
+argument that a designator is a heading; but it is the same instruction that would admit folios, so
+it cannot be applied strictly and the question of how far to read it down returns unanswered.
+Against it, a structural presupposition runs through the fields surrounding the definition: every
+`role` label but `other` names a structural element of an appropriations bill, and `parent` asks
+for "the nearest heading above this one that **this heading sits under**". `other` does not resolve
+this, because it classifies something already determined to be a heading rather than conferring
+heading-hood on anything typographically distinct.
+
+**THE INSTRUMENT FINDING.** `adjudicator_prompt.md` defines a heading compositionally, surrounds it
+with fields that presuppose structure, and states no rule for page furniture beyond one incomplete
+example. A successor instrument should settle running page furniture in one explicit sentence
+rather than leave it to be inferred from a composition test that, read strictly, admits page
+numbers.
+
+**THE CORRECTION: the R1 text FAIL is not a disagreement between routes.**
+
+A62.2 presents the gap as AI route against human route and infers that the definitional answer
+decides whether the text metrics stand. **A62.2's arithmetic sensitivity is not disputed here**:
+filtering designators does change R1 from 0.80 to 1.00. What does not hold is the attribution.
+
+**Every R1 pair is on the AI route.** `metrics.json` `r1_reliability` carries `n_pairs` 6 and
+`route` reads `ai` on all six. The human route contributes no R1 pair, having been removed from R1
+by A48, and carries no record at all for either id in the failing pair. **The human route is not
+party to this failure.**
+
+**Both presentations print the designator, and the adjudicator saw it both times.** The pair is
+primary `265fdcf236211f36`, repeat `8f6286a669bc6f38`. Section 5.6 specifies an R1 repeat as the
+same region "re-rendered at a different but visually equivalent scale so they cannot be recognised
+by hash", and that is what these are: 1499x1208 against 1649x1328, a uniform 1.100 scale, mean
+absolute greyscale difference 2.6/255 after resampling to a common size, ink fraction 0.03246
+against 0.03273 overall and 0.04252 against 0.04311 in the foot band. Both images print
+`•S 1609 PCS` in bold at the foot, confirmed by inspecting the rendered images rather than the text
+layer.
+
+**The primary's committed note excludes it in terms:** "A bold page-foot line reading '•S 1609 PCS'
+appears at the bottom... **It is set in bold and separated from the text block, but it is a page
+footer/document identifier rather than a heading over any content**, so it is not reported as a
+heading." The repeat reports the same string with role `other`. **This is not a perceptual miss. It
+is one adjudicator applying two incompatible rules to the same object across two presentations of
+the same region**, which is what section 5.6 says R1 exists to detect: "R1 exists because phase 1
+found six identical stimuli answered 3 BOUNDARY / 3 NO_BOUNDARY and reported it as a defect in its
+own work."
+
+**The instability is specific to this class, which is the sharpest thing the run establishes.**
+
+| page furniture class | admitted as a heading | excluded | consistent? |
+|---|---|---|---|
+| centered page folio | 0 | 25 | **yes** |
+| page-foot bill designator | 23 | 2 | **no** |
+
+The adjudicator holds a stable rule for folios and an unstable one for designators. The second
+designator exclusion, `16f182372a39af6e` (`†HR 3237 EAS`, note: "page furniture (a running
+footer/printer's mark), not a heading over any content"), sits in no R1 pair and moves no metric.
+Every image whose last printed line carries the designator signature was accounted for: 12
+reported, 2 reasoned away, none overlooked.
+
+**THE CONSEQUENCE, stated without inventing a rule the protocol does not have.**
+
+| reading | R1 text | protocol status |
+|---|---|---|
+| as scored, designators counted | 4/5 = 0.80 | **FAIL**; section 5.6 voids M2 and M3 |
+| designators excluded | 1/1 = 1.00 | **PASS**, and a genuine one |
+
+**The 1/1 is a real protocol PASS and is not dismissed here.** Section 5.6 sets no minimum pair
+count and no minimum denominator, and A62.1 deliberately declined to add one after seeing that a
+denominator of 5 produces a FAIL. Declaring 1/1 unevaluable now would install exactly that floor,
+retrospectively, which is the substitution the register has already refused once. **It is a PASS on
+one observation: very weak evidence, and NON-CONFIRMATORY under 4.7 like every other figure in this
+run.** That is a statement about evidential weight, not about protocol status, and the two are kept
+apart deliberately.
+
+**But the exclusion reading is not the cheap rescue A62.2's two-row table implies, and three costs
+go unrecorded there.** First, excluding designators removes **4 of the 5 denominator-bearing
+occurrences, 3 agreeing and the 1 failing**. Second, R6.1 scores against a symmetric union
+denominator, so ruling designators out does not simply delete the repeat's report: **it converts
+that report into an over-trigger**, and reaching 1/1 requires a further, unstated filter on the
+output population as well as on the reference. Third, the same ruling would reclassify **19 of the
+65 C-frame headings** as reported-but-not-headings, which bears on M1 precision and on what N-C
+exists to detect. None of that has been computed.
+
+**So the definitional answer does not, by itself, decide whether the text metrics stand.** Under
+the population as scored, R1 fails and section 5.6's void applies. Under the contrary reading, R1
+passes on a single observation while the route acquires an unexamined over-reporting problem
+elsewhere. Neither outcome is a confirmatory result about reliability.
+
+**THE EXPOSURE, confirmed and resolved by population.** A62.2 gave 23 of 95, which is the count
+across all 122 AI-route answers, and said those designators also sit in the M1 recall denominator.
+Resolved against the key's frame flags:
+
+| population | headings | of which running designators |
+|---|---|---|
+| C frame | 65 | **19** |
+| controls | 25 | 0 |
+| R1 repeats | 5 | 4 |
+| all AI answers | 95 | 23 |
+
+The C-frame total of 65 is exactly M1 recall's reported denominator, which corroborates the
+mapping. **Roughly three in ten of the headings in the C estimand's adjudicated enumeration are
+running page furniture whose status the instrument does not settle.** That is the exposure, and it
+is larger for the C estimand than the 23-of-95 figure suggests.
+
+**WHAT STANDS.** The metrics are left exactly as scored, because that is what the committed
+apparatus produced and because nothing in this entry authorizes a change: R1 text 4/5 FAIL, M2 and
+M3 void under section 5.6, and the 19 C-frame designators in place. Applying section 5.6's frozen
+consequence is the conservative direction and the one A62.1 already committed to; declining to
+apply it now, having seen that the other reading would avoid it, is the softening the register
+exists to refuse.
+
+**On PRE-REGISTRATION 4.7.** This question was examined in full knowledge of which answer yields
+PASS and which yields FAIL. The outcome is that the instrument does not decide, which moves no
+value and is the only outcome that does not substitute a post-hoc definition for a frozen one. The
+exposure is stated rather than argued away: the examination happened after the results were
+visible, and every figure it touches was already NON-CONFIRMATORY on other grounds.
