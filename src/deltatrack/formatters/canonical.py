@@ -162,6 +162,13 @@ def xml_diff_to_canonical(
     into the returned JSON.
     """
     diffed = [c for c in (diff_dict.get("changes") or []) if c.get("change_type") != "unchanged"]
+    # The summary's `unchanged` key counts entries this document never carries (dropped
+    # above), and was always 0 on every shipped entry point — but seeding it broke
+    # pipeline parity with the PDF producer, whose Counter-based summary has no such
+    # key (#706). Drop it here rather than in _count_changes so the internal BillDiff
+    # and the legacy CLI JSON path keep counting unchanged nodes (--include-unchanged
+    # is alive there). The four canonical keys of schema/canonical-diff.md survive as-is.
+    summary = {k: v for k, v in (diff_dict.get("summary") or {}).items() if k != "unchanged"}
     normalized_full_text = _normalize_full_text(full_text)
     search_state: dict = {}
     return {
@@ -184,7 +191,7 @@ def xml_diff_to_canonical(
                 "source": "xml",
             },
         },
-        "summary": dict(diff_dict.get("summary") or {}),
+        "summary": summary,
         "full_text": normalized_full_text,
         "tree": _normalize_tree(tree, normalized_full_text),
         "changes": [
