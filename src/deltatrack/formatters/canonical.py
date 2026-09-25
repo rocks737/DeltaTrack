@@ -28,7 +28,7 @@ from deltatrack.formatters.view_model import ChangeView, DiffView
 from deltatrack.parsers.pdf_anchors import Anchor, breadcrumb_for
 from deltatrack.structure_tree import TreeNode, build_pdf_tree
 
-SCHEMA_VERSION = "3.0"
+SCHEMA_VERSION = "3.1"
 GENERATOR_NAME = "deltatrack"
 
 
@@ -162,13 +162,17 @@ def xml_diff_to_canonical(
     into the returned JSON.
     """
     diffed = [c for c in (diff_dict.get("changes") or []) if c.get("change_type") != "unchanged"]
-    # The summary's `unchanged` key counts entries this document never carries (dropped
-    # above), and was always 0 on every shipped entry point — but seeding it broke
-    # pipeline parity with the PDF producer, whose Counter-based summary has no such
-    # key (#706). Drop it here rather than in _count_changes so the internal BillDiff
-    # and the legacy CLI JSON path keep counting unchanged nodes (--include-unchanged
-    # is alive there). The four canonical keys of schema/canonical-diff.md survive as-is.
-    summary = {k: v for k, v in (diff_dict.get("summary") or {}).items() if k != "unchanged"}
+    # The summary the document ships must count only what the document carries. Two
+    # producer-side artifacts are filtered out here (#706):
+    #  - `unchanged`: counts entries dropped above, so the count has no referent in
+    #    this document. (It can be non-zero on a shipped path today — the CLI's
+    #    --include-unchanged HTML path opts entries back in upstream — but the
+    #    canonical document still never carries them.)
+    #  - zero-valued keys: the PDF producer's Counter omits them naturally; keeping
+    #    them on the XML side broke pipeline parity whenever a category happened to
+    #    be empty. The contract (schema/canonical-diff.md) permits omission, and the
+    #    renderer reads summaries with .get(key, 0), so a missing key is already 0.
+    summary = {k: v for k, v in (diff_dict.get("summary") or {}).items() if k != "unchanged" and v}
     normalized_full_text = _normalize_full_text(full_text)
     search_state: dict = {}
     return {

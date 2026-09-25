@@ -1,31 +1,38 @@
-"""Summary parity between the two canonical producers (#706).
+"""Summary shape parity between the two canonical producers (#706).
 
 ADR 0006 sells pipeline neutrality: "a diff produced from XML inputs and a diff
 produced from PDF inputs share this shape." The ``summary`` object broke that
-promise — the XML producer seeded five keys (always including ``unchanged`` and
-its zeros), while the PDF producer built a ``Counter`` over the change types
-actually present and had no ``unchanged`` kind to emit at all. A consumer that
-enumerates summary keys got five names from one pipeline and four from the
-other for identical legislative content.
+promise in two ways, both fixed by filtering in the adapter
+(``xml_diff_to_canonical``):
 
-The fix is the issue's Option A: stop emitting ``unchanged`` from the XML
-producer. Nothing is lost — the value was provably constant at 0 on every
-document a shipped entry point produced, because the canonical adapter drops
-``unchanged`` entries before serializing and no production caller can opt back
-in since #693.
+1. The XML producer seeded an ``unchanged`` key the PDF producer (a Counter
+   over present change types) has no kind to emit at all. It counts entries
+   the canonical document never carries — the adapter drops ``unchanged``
+   entries before serializing — so the count has no referent.
+2. The XML producer seeded all four canonical keys including zeros; the PDF
+   producer omits a category it found nothing of. On any pair where a
+   category happens to be empty, the summary shapes diverged. Zero-valued
+   keys are dropped too: the contract (``schema/canonical-diff.md``) permits
+   omission, and the renderer reads summaries with ``.get(key, 0)``, so a
+   missing key is already 0 to every consumer.
 
-These tests run both producers over the same committed bill pair through the
-public compare entry points (``compare_xml`` / ``compare_pdfs``), the layer the
-web app calls — the same "measure at the consumed output" rule
-``test_canonical_baseline`` states. The corpus pair used here,
-``118-hr-8752 1_reported-in-house -> 2_engrossed-in-house``, is the one the
-issue measured on.
+What the contract-level tests assert — and what they deliberately do NOT:
 
-Note what these tests do NOT assert: that the two summaries carry the same
-*counts*. They do not — the pipelines are free to disagree about how many
-changes they find (the PDF path found 16 adds where XML found 18 on this pair,
-and that is a fidelity difference, not a contract break). Parity here is about
-the *key set*, the shape a machine consumer enumerates.
+- **Asserted:** every shipped summary, from either pipeline, carries only
+  keys from the four the prose contract names, and carries no zero-valued
+  key. That is the shape guarantee a machine consumer can rely on, checked
+  across every committed dual-format bill pair.
+- **Not asserted:** that the two pipelines report the same key set or counts
+  for a pair. They legitimately may not: the pipelines are independent
+  extractors with different fidelity, and on e.g. 113-hr-3547 2→3 the XML
+  side finds no changes at all while the PDF side finds two modified
+  sections. That is a fidelity difference between extractors, not a summary
+  contract break, and no summary-layer change can or should erase it.
+
+An earlier draft of these tests asserted cross-pipeline key-set *equality*
+on one fixture pair; it passed only because that pair happened to have all
+four categories non-zero on both sides, while other pairs still diverged —
+both in shape (fixed here) and in content (out of scope, see above).
 """
 
 from __future__ import annotations
@@ -34,73 +41,94 @@ import pytest
 
 from deltatrack.compare.pdf import compare_pdfs
 from deltatrack.compare.xml import compare_xml
-from tests.corpus_paths import fixture_path
+from deltatrack.formatters.canonical import xml_diff_to_canonical
+from tests.corpus_paths import FIXTURES_DIR
 
-pytestmark = pytest.mark.slow
-
-_V1_STEM = "1_reported-in-house"
-_V2_STEM = "2_engrossed-in-house"
+_CANONICAL_PAIRS_MARK = pytest.mark.slow
 
 #: The four canonical keys of schema/canonical-diff.md's prose contract. Zero-count
 #: keys MAY be omitted per that contract, so a consumer must tolerate absence of
-#: any of them — but no producer may emit a key outside this set.
+#: any of them — but no producer may emit a key outside this set, or a zero value.
 CANONICAL_SUMMARY_KEYS = frozenset({"added", "removed", "modified", "moved"})
 
+#: Committed bills carrying both XML and PDF versions — the shape-conformance set.
+_DUAL_FORMAT_BILLS = ("113-hr-3547", "118-hr-8752")
 
-def _pair() -> tuple[bytes, bytes, bytes, bytes] | None:
-    """Both sides of the 118-hr-8752 1->2 pair, XML and PDF, or None if absent.
 
-    The XML and PDF fixtures are committed separately (format parity in the
-    corpus is deliberately partial), so a missing side skips rather than
-    asserting less — the same fail-open rule ``test_front_matter_parity`` uses.
+def _pairs() -> list[tuple[str, str, str]]:
+    """Every adjacent version pair of each dual-format bill, as (bill, old, new).
+
+    Derived from the fixture directory rather than the manifest so a pair missing
+    one format is simply absent here (the per-side existence check inside the test
+    is the fail-safe for a partially committed bill).
     """
-    xml_v1 = fixture_path("118-hr-8752", f"{_V1_STEM}.xml")
-    xml_v2 = fixture_path("118-hr-8752", f"{_V2_STEM}.xml")
-    pdf_v1 = fixture_path("118-hr-8752", f"{_V1_STEM}.pdf")
-    pdf_v2 = fixture_path("118-hr-8752", f"{_V2_STEM}.pdf")
-    if not all(p.exists() for p in (xml_v1, xml_v2, pdf_v1, pdf_v2)):
-        return None
-    return xml_v1.read_bytes(), xml_v2.read_bytes(), pdf_v1.read_bytes(), pdf_v2.read_bytes()
+    pairs: list[tuple[str, str, str]] = []
+    for bill in _DUAL_FORMAT_BILLS:
+        d = FIXTURES_DIR / bill
+        if not d.exists():
+            continue
+        stems = sorted(
+            (p.name.removesuffix(".xml") for p in d.glob("*.xml")),
+            key=lambda s: int(s.split("_", 1)[0]),
+        )
+        pairs.extend((bill, a, b) for a, b in zip(stems, stems[1:]))
+    return pairs
 
 
-def test_summary_keys_are_canonical() -> None:
-    """Every key each producer emits is one of the four the contract names.
+def _assert_summary_conforms(summary: dict, producer: str, label: str) -> None:
+    """A shipped summary carries only canonical keys, each with a non-zero count."""
+    non_canonical = sorted(set(summary) - CANONICAL_SUMMARY_KEYS)
+    assert not non_canonical, f"{producer} summary for {label} carries non-canonical keys: {non_canonical}"
+    zeros = sorted(k for k, v in summary.items() if not v)
+    assert not zeros, f"{producer} summary for {label} carries zero-valued keys: {zeros}"
 
-    Red before #706's fix: the XML producer emitted a fifth key, ``unchanged``,
-    that the prose contract does not name and the PDF producer never emits.
+
+@_CANONICAL_PAIRS_MARK
+@pytest.mark.parametrize(("bill", "old_stem", "new_stem"), _pairs(), ids=[f"{b}/{o}->{n}" for b, o, n in _pairs()])
+def test_summary_conforms_to_the_contract_from_both_pipelines(bill: str, old_stem: str, new_stem: str) -> None:
+    """Each pipeline's shipped summary carries only non-zero canonical keys.
+
+    Red before #706's fix in two independent ways: the XML summary carried an
+    extra ``unchanged`` key (every pair), and it carried zero-valued seeds the
+    PDF producer's Counter omitted (any pair with an empty category — e.g.
+    113-hr-3547 1→2 shipped ``{'added': 0, 'removed': 0, 'modified': 1,
+    'moved': 0}`` where the PDF side shipped ``{'modified': 2}``).
     """
-    pair = _pair()
-    if pair is None:
-        pytest.skip("118-hr-8752 XML/PDF pair not present")
-    xml_v1, xml_v2, pdf_v1, pdf_v2 = pair
+    old_xml = FIXTURES_DIR / bill / f"{old_stem}.xml"
+    new_xml = FIXTURES_DIR / bill / f"{new_stem}.xml"
+    old_pdf = FIXTURES_DIR / bill / f"{old_stem}.pdf"
+    new_pdf = FIXTURES_DIR / bill / f"{new_stem}.pdf"
+    if not all(p.exists() for p in (old_xml, new_xml, old_pdf, new_pdf)):
+        pytest.skip(f"{bill} {old_stem}->{new_stem} not committed in both formats")
 
-    xml_summary = compare_xml(xml_v1, xml_v2)["summary"]
-    assert set(xml_summary) <= CANONICAL_SUMMARY_KEYS, (
-        f"XML summary carries non-canonical keys: {sorted(set(xml_summary) - CANONICAL_SUMMARY_KEYS)}"
-    )
+    label = f"{bill}/{old_stem}->{new_stem}"
+    xml_summary = compare_xml(old_xml.read_bytes(), new_xml.read_bytes())["summary"]
+    pdf_summary = compare_pdfs(old_pdf.read_bytes(), new_pdf.read_bytes())["summary"]
 
-    pdf_summary = compare_pdfs(pdf_v1, pdf_v2)["summary"]
-    assert set(pdf_summary) <= CANONICAL_SUMMARY_KEYS, (
-        f"PDF summary carries non-canonical keys: {sorted(set(pdf_summary) - CANONICAL_SUMMARY_KEYS)}"
-    )
+    _assert_summary_conforms(xml_summary, "XML", label)
+    _assert_summary_conforms(pdf_summary, "PDF", label)
 
 
-def test_xml_pdf_summary_keys_agree_for_the_same_pair() -> None:
-    """Both pipelines report the same summary key set for the same bill pair.
+def test_adapter_drops_unchanged_count_even_when_nonzero() -> None:
+    """A summary carrying ``unchanged`` entries loses them at the adapter.
 
-    The red state #706 measured: XML ``['added', 'modified', 'moved',
-    'removed', 'unchanged']`` against PDF ``['added', 'modified', 'moved',
-    'removed']``. Counts may legitimately differ between pipelines; the key set
-    — the shape a machine consumer enumerates — may not.
+    Fast unit coverage for the drop itself: nothing else in the fast suite feeds
+    the adapter a summary with ``unchanged`` in it, and the value is NOT always
+    zero upstream — the CLI's ``--include-unchanged`` HTML path opts the entries
+    back in before the adapter boundary. The canonical document never carries
+    those entries, so the count has no referent and must not ship. Zero-valued
+    canonical keys drop too (the PDF-producer parity case).
     """
-    pair = _pair()
-    if pair is None:
-        pytest.skip("118-hr-8752 XML/PDF pair not present")
-    xml_v1, xml_v2, pdf_v1, pdf_v2 = pair
-
-    xml_keys = set(compare_xml(xml_v1, xml_v2)["summary"])
-    pdf_keys = set(compare_pdfs(pdf_v1, pdf_v2)["summary"])
-    assert xml_keys == pdf_keys, (
-        "summary key sets diverge between pipelines for the same bill pair: "
-        f"XML-only={sorted(xml_keys - pdf_keys)} PDF-only={sorted(pdf_keys - xml_keys)}"
+    diff_dict = {
+        "bill_type": "hr",
+        "bill_number": 3547,
+        "congress": 113,
+        "old_version": "Introduced in House",
+        "new_version": "Engrossed in House",
+        "summary": {"added": 0, "removed": 2, "modified": 1, "unchanged": 4, "moved": 0},
+        "changes": [],
+    }
+    canonical = xml_diff_to_canonical(diff_dict)
+    assert canonical["summary"] == {"removed": 2, "modified": 1}, (
+        f"expected only non-zero canonical keys to survive, got {canonical['summary']}"
     )
